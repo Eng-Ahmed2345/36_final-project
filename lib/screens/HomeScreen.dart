@@ -1,11 +1,11 @@
 // File: image_picker_page.dart
 import 'dart:io';
-// import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
+
 import 'package:fetal_head_fixed/screens/UploadScreen.dart';
 
 class ImagePickerPage extends StatefulWidget {
@@ -21,6 +21,58 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
 
   final Color iconColor = const Color(0xff49454f);
 
+  final List<Map<String, String>> _measurementRows = const [
+    {'ga': '20', 'bpd': '46–52', 'hc': '170–186'},
+    {'ga': '24', 'bpd': '58–64', 'hc': '210–235'},
+    {'ga': '28', 'bpd': '70–76', 'hc': '260–285'},
+    {'ga': '32', 'bpd': '80–86', 'hc': '300–330'},
+    {'ga': '36', 'bpd': '88–94', 'hc': '320–350'},
+    {'ga': '40', 'bpd': '92–98', 'hc': '340–370'},
+  ];
+
+  void _showMeasurementDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text(
+            'Fetal Head Measurements',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: _measurementRows.map((row) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Week ${row['ga']}'),
+                      Text('BPD: ${row['bpd']} mm'),
+                      Text('HC: ${row['hc']} mm'),
+                      const Divider(height: 10),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: iconColor),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -34,7 +86,7 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
       }
       setState(() {});
 
-      if (_imageBytes != null) {
+      if (_imageBytes != null && mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -43,7 +95,7 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
         );
       }
     } else {
-      print("No image selected");
+      debugPrint("No image selected");
     }
   }
 
@@ -55,15 +107,15 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
         backgroundColor: iconColor,
         title: const Text(
           'Fetal Head',
-          style: TextStyle(fontSize: 21,color: Colors.white),
+          style: TextStyle(fontSize: 21, color: Colors.white),
         ),
         centerTitle: false,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
             const Padding(
@@ -88,7 +140,22 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: ElevatedButton.icon(
+                  onPressed: _showMeasurementDialog,
+                  icon: const Icon(Icons.list),
+                  label: const Text('View Measurements'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: iconColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -116,14 +183,12 @@ class _ImagePickerPageState extends State<ImagePickerPage> {
                 IconButton(
                   icon: Icon(Icons.home, size: 25, color: iconColor),
                   onPressed: () {
-                    // Add navigation to home or handle accordingly
+                    // TODO: Handle navigation to home
                   },
                 ),
                 IconButton(
                   icon: Icon(Icons.camera_alt, size: 25, color: iconColor),
-                  onPressed: () async {
-                    await _pickImage();
-                  },
+                  onPressed: _pickImage,
                 ),
               ],
             ),
