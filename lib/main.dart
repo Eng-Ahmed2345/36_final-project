@@ -1,8 +1,7 @@
+import 'package:fetal_head_fixed/screens/TopDoctors.dart';
 import 'package:flutter/material.dart';
 import 'package:fetal_head_fixed/screens/HomeScreen.dart';
 import 'package:fetal_head_fixed/screens/SplashScreen.dart';
-import 'package:fetal_head_fixed/screens/Prediction.dart';
-
 
 void main() => runApp(const MyApp());
 
@@ -17,7 +16,8 @@ class MyApp extends StatelessWidget {
       routes: {
           '/home': (context) => const ImagePickerPage(),
           '/splash': (context) => const SplashScreen(),
-      
+          '/doctors': (context) => const TopDoctorsPage(),
+          
         },
     );
   }

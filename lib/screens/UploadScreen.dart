@@ -19,6 +19,9 @@ class _UploadImagePageState extends State<UploadImagePage> {
   bool loading = false;
   String? error;
 
+  int selectedWeek = 20; // default selected gestational week
+  final List<int> gestationalWeeks = List.generate(31, (index) => 12 + index); // Weeks 12–42
+
   Future<void> _sendImage() async {
     setState(() {
       loading = true;
@@ -26,9 +29,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
     });
 
     try {
-      // Change the URI to your Flask server IP or use 10.0.2.2 for Android emulator
-      final uri = Uri.parse('http://192.168.1.5:5000/process-image');//http://10.0.2.2:5000 for emulator android
-
+      final uri = Uri.parse('http://127.0.0.1:5000/process-image'); // Update this for your backend
 
       final request = http.MultipartRequest('POST', uri)
         ..files.add(
@@ -43,11 +44,9 @@ class _UploadImagePageState extends State<UploadImagePage> {
       final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode == 200) {
-        // Attempt to parse JSON first
         try {
           final data = json.decode(response.body);
 
-          // Correct measurement keys
           final base64Image = data['image'] as String?;
           final hc = data['HC'] ?? 'HC: N/A';
           final bpd = data['BPD'] ?? 'BPD: N/A';
@@ -64,6 +63,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
                   hc: hc,
                   bpd: bpd,
                   ofd: ofd,
+                  week: selectedWeek,
                 ),
               ),
             );
@@ -71,7 +71,6 @@ class _UploadImagePageState extends State<UploadImagePage> {
             setState(() => error = 'No image field found in the response.');
           }
         } catch (_) {
-          // If JSON parsing fails, assume raw image bytes
           final bytes = response.bodyBytes;
           if (bytes.isNotEmpty) {
             Navigator.push(
@@ -82,6 +81,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
                   hc: 'HC: N/A',
                   bpd: 'BPD: N/A',
                   ofd: 'OFD: N/A',
+                  week: selectedWeek,
                 ),
               ),
             );
@@ -133,8 +133,55 @@ class _UploadImagePageState extends State<UploadImagePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             Image.memory(widget.imageBytes, height: 145),
+            const SizedBox(height: 20),
+
+            // Gestational week dropdown
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Select Gestational Week",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: selectedWeek,
+                        icon: const Icon(Icons.arrow_drop_down),
+                        isExpanded: true,
+                        items: gestationalWeeks.map((week) {
+                          return DropdownMenuItem<int>(
+                            value: week,
+                            child: Text("Week $week"),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedWeek = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const Spacer(),
 
             if (loading) ...[
