@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="fetal_head_fixed"
+        android:label="Fetal Head"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
